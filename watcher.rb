@@ -2,6 +2,8 @@ require 'json'
 require 'faraday'
 require 'faraday_middleware'
 
+Process.daemon
+
 class Watcher
   def initialize
     @conn = Faraday.new(url: 'http://ucchusma.herokuapp.com/api/v1') do |faraday|
@@ -30,7 +32,7 @@ class Watcher
       next if @history.length < 10
 
       @count = 0 if @count >= 60
-      @history.shift if @history.length > 180
+      @history.shift if @history.length > 60
       next unless @count % 10 == 0
 
       status = @history.count { |v| v == 1 } > 5 ? 'occupied' : 'vacant'
