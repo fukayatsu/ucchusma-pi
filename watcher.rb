@@ -31,8 +31,8 @@ class Watcher
       @count += 1
       next if @history.length < 10
 
-      @count = 0 if @count >= 60
-      @history.shift if @history.length > 60
+      @count = 0 if @count >= 30
+      @history.shift if @history.length > 30
       next unless @count % 10 == 0
 
       status = @history.count { |v| v == 1 } > 5 ? 'occupied' : 'vacant'
