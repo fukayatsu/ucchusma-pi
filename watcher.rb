@@ -26,21 +26,25 @@ class Watcher
 
     loop do
       sleep 1
+      
+      begin
+        @history << `cat /sys/class/gpio/gpio4/value`.to_i
+        @count += 1
+        next if @history.length < 10
 
-      @history << `cat /sys/class/gpio/gpio4/value`.to_i
-      @count += 1
-      next if @history.length < 10
+        @count = 0 if @count >= 30
+        @history.shift if @history.length > 30
+        next unless @count % 10 == 0
 
-      @count = 0 if @count >= 30
-      @history.shift if @history.length > 30
-      next unless @count % 10 == 0
+        status = @history.count { |v| v == 1 } > 5 ? 'occupied' : 'vacant'
 
-      status = @history.count { |v| v == 1 } > 5 ? 'occupied' : 'vacant'
-
-      resp = @conn.put do |req|
-        req.url 'rooms/1'
-        req.headers['Content-Type'] = 'application/json'
-        req.body = { status: status, token: ENV['TOKEN'] }.to_json
+        resp = @conn.put do |req|
+          req.url 'rooms/1'
+          req.headers['Content-Type'] = 'application/json'
+          req.body = { status: status, token: ENV['TOKEN'] }.to_json
+        end
+      rescue => e
+        p e.message
       end
     end
   end
